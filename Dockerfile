@@ -14,20 +14,15 @@ WORKDIR /workspace
 # Repo holen
 RUN git clone https://github.com/Wan-Video/Wan2.2.git
 
-# 1) PyTorch zuerst (passend zu CUDA 12.1)
+# 1) PyTorch (passt zu CUDA 12.1)
 RUN pip3 install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu121 \
     torch==2.4.0 torchvision==0.19.0
 
-# 2) Häufige „Problemkinder“ separat mit Binär-Wheels
-#    (verhindert Build aus Source im CI)
-RUN pip3 install --no-cache-dir \
-    triton==2.3.0 \
-    xformers==0.0.27.post2
+# 2) Restliche Requirements (ohne triton/xformers)
+RUN grep -vE "triton|xformers" /workspace/Wan2.2/requirements.txt > /workspace/req_clean.txt \
+ && pip3 install --no-cache-dir -r /workspace/req_clean.txt
 
-# 3) Restliche Abhängigkeiten aus dem Repo
-RUN pip3 install --no-cache-dir -r /workspace/Wan2.2/requirements.txt
-
-# RunPod-Wrapper
+# 3) RunPod-Wrapper
 RUN pip3 install --no-cache-dir runpod
 
 # Modelle liegen später in /models (RunPod-Volume)
